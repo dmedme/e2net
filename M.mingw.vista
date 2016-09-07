@@ -1,0 +1,139 @@
+# makefile
+#	SCCS ID: %W% %G%
+##########################################################################
+# The compilation stuff
+##########################################################################
+INCS=-I. -I../e2common 
+YACC=byacc
+LEX=flex -l
+#CFLAGS=-DPOSIX -O4 -I. -DE2 $(INCS) -DAT -DNT4 -DMINGW32 -DPATH_AT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DAT -DNOBPF_H -DNOTCP_H -DNOETHER_H -DPATH_AT -D_WIN32 -DWIN32 -DNT4 -DNOIP_H -DNOIP_ICMP_H -Ic:/mingw/zlib123-dll/include
+CFLAGS=-DPOSIX -g2 -I. -DE2 $(INCS) -DAT -DNT4 -DMINGW32 -DPATH_AT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DAT -DNOBPF_H -DNOTCP_H -DNOETHER_H -DPATH_AT -D_WIN32 -DWIN32 -DNT4 -DNOIP_H -DNOIP_ICMP_H -Ic:/mingw/zlib123-dll/include
+CC= c:/mingw/bin/gcc
+RC = c:/lcc/bin/lrc
+VCC= c:/mingw/bin/gcc
+XPGCC= c:/mingw/bin/gcc
+#CLIBS=../e2common/comlib.a -Lc:/mingw/lib -lwsock32 -ladvapi32 -luser32 -lgdi32 -lshell32 -lkernel32 -lmsvcrt
+CLIBS=../e2common/comlib.a -Lc:/mingw/lib -lws2_32 -lkernel32 -lmsvcrt
+#CLIBS=../e2common/comlib.a -Lc:/mingw/lib -lws2_32 -ladvapi32 -luser32 -lgdi32 -lshell32 -lkernel32 -lmsvcrt
+RANLIB = c:/mingw/bin/ranlib
+AR = c:/mingw/bin/ar
+LD= c:/mingw/bin/gcc
+##########################################################################
+# The executables that are built
+##########################################################################
+# Makefile for snoopfix
+#all: genconv aixdump2snp snoopfix trafmul ipdrive webdrive t3drive webdump racdump t3dump minitest ipdanal obdump tdsdump ntrelay vistarelay
+all: minitest racdump genconv snoopfix e2teld webdump trafmul t3dump dotnetdump ipdrive
+	@echo All done
+genconv: genconv.c e2net.o e2net.h
+	$(CC) $(CFLAGS) -o genconv genconv.c e2net.o $(CLIBS)
+resum: resum.c e2net.o novell.o e2net.h
+	$(CC) $(CFLAGS) -o resum resum.c e2net.o novell.o $(CLIBS)
+aixdump2snp: aixdump2snp.c
+	$(CC) $(CFLAGS) -o aixdump2snp aixdump2snp.c $(CLIBS)
+sniffmerge: sniffmerge.c
+	$(CC) $(CFLAGS) -o sniffmerge sniffmerge.c $(CLIBS)
+llctrace2snp: llctrace2snp.c
+	$(CC) $(CFLAGS) -o llctrace2snp llctrace2snp.c $(CLIBS)
+eqsnf2snp: eqsnf2snp.c
+	$(CC) $(CFLAGS) -o eqsnf2snp eqsnf2snp.c $(CLIBS)
+mdis2snp: mdis2snp.c
+	$(CC) $(CFLAGS) -o mdis2snp mdis2snp.c $(CLIBS)
+coddrive: coddrive.c coddrive.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o coddrive coddrive.c ../sqldrive/timestamp.c $(CLIBS)
+coddump: coddump.c coddrive.h e2net.h
+	$(CC) $(CFLAGS) -o coddump coddump.c ../sqldrive/timestamp.c $(CLIBS)
+codamul: genconv.c novell.h e2net.h e2net.o codextlib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=cod_app_recognise -o codamul genconv.c codextlib.o e2net.o $(CLIBS)
+ccsmul: genconv.c novell.h e2net.h e2net.o ccsextlib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=ccs_app_recognise -o ccsmul genconv.c ccsextlib.o e2net.o $(CLIBS)
+ccsdbg: genconv.c novell.h e2net.h e2net.o ccsextlib.c
+	$(CC) $(CFLAGS) -DDEBUG -DREC_PROT1=ccs_app_recognise -o ccsdbg genconv.c ccsextlib.c e2net.o $(CLIBS)
+integmul: genconv.c novell.h e2net.h e2net.o integlib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=integ_app_recognise -o integmul genconv.c integlib.o e2net.o $(CLIBS)
+sqlmul: genconv.c novell.h e2net.h e2net.o sqlextlib.o pathextlib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=ora_app_recognise -o sqlmul genconv.c sqlextlib.o e2net.o ../perfdb/perf.a $(CLIBS)
+ingmul: genconv.c novell.h e2net.h e2net.o ingextlib.o
+	$(CC) $(CFLAGS) -DWEBDUMP -DREC_PROT1=ing_app_recognise -o ingmul genconv.c ingextlib.o e2net.o $(CLIBS)
+ingextlib.o: ingextlib.c e2net.h
+	$(CC) $(CFLAGS) -DVERBOSE -DDEBUG -c ingextlib.c
+sybmul: genconv.c novell.h e2net.h e2net.o sybextlib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=syb_app_recognise -o sybmul genconv.c sybextlib.o e2net.o  $(CLIBS)
+sqldbg: genconv.c novell.h e2net.h e2net.o sqlextlib.c
+	$(CC) $(CFLAGS) -DREC_PROT1=ora_app_recognise -o sqldbg genconv.c -DDEBUG sqlextlib.c e2net.o $(CLIBS)
+snoopfix: snoopfix.c e2net.o novell.o
+	$(CC) $(CFLAGS) -o snoopfix snoopfix.c novell.o e2net.o $(CLIBS)
+bpcs: bpcs.o novell.o e2net.o
+	$(CC) $(CFLAGS) -o bpcs bpcs.o novell.o e2net.o $(CLIBS)
+bpcs.o: bpcs.c novell.h e2net.h
+	$(CC) $(CFLAGS) -c bpcs.c
+novell.o: novell.c novell.h
+	$(CC) $(CFLAGS) -c novell.c
+e2net.o: e2net.c e2net.h
+	$(CC) $(CFLAGS) -c e2net.c
+sybextlib.o: sybextlib.c e2net.h
+	$(CC) $(CFLAGS) -DVERBOSE -c sybextlib.c
+sqlextlib.o: sqlextlib.c e2net.h
+	$(CC) $(CFLAGS) -I../perfdb -DOR9 -I$(ORACLE_HOME)/rdbms/public -c sqlextlib.c
+pathextlib.o: pathextlib.c e2net.h
+	$(CC) $(CFLAGS) -c pathextlib.c
+trafmul: genconv.c trafextlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o trafmul -DREC_PROT1=traf_app_recognise genconv.c trafextlib.o e2net.o $(CLIBS)
+webdump: genconv.c webextlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o webdump -DWEBDUMP -DREC_PROT1=web_app_recognise genconv.c webextlib.o e2net.o $(CLIBS)
+racdump: genconv.c httpextlib.o novell.h e2net.h e2net.o ../rac/fencdec.o
+	$(CC) $(CFLAGS) -o racdump -DWEBDUMP -DREC_PROT1=web_app_recognise genconv.c httpextlib.o e2net.o ../rac/fencdec.o $(CLIBS)
+dotnetdump: genconv.c dotnetextlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o dotnetdump -DWEBDUMP -DREC_PROT1=dotnet_app_recognise genconv.c dotnetextlib.o e2net.o $(CLIBS)
+httpextlib.o: httpextlib.c e2net.h
+	$(CC) $(CFLAGS) -c httpextlib.c
+t3monlib.o: t3monlib.c e2net.h
+	$(CC) $(CFLAGS) -c t3monlib.c
+webmonlib.o: webmonlib.c e2net.h
+	$(CC) $(CFLAGS) -c webmonlib.c
+obdump: genconv.c obdextlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o obdump -DWEBDUMP -DREC_PROT1=obd_app_recognise genconv.c obdextlib.o e2net.o $(CLIBS)
+webdrive: webdrive.c webextlib.o
+	$(CC) $(CFLAGS) -o webdrive webdrive.c webextlib.o ../e2common/comlib.a $(CLIBS)
+webmon: genconv.c webmonlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o webmon -DWEBDUMP -DREC_PROT1=web_app_recognise genconv.c webmonlib.o e2net.o $(CLIBS)
+t3mon: genconv.c t3monlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o t3mon -DWEBDUMP -DREC_PROT1=t3_app_recognise genconv.c t3monlib.o e2net.o $(CLIBS)
+t3dump: genconv.c t3extlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o t3dump -DWEBDUMP -DREC_PROT1=web_app_recognise genconv.c t3extlib.o e2net.o $(CLIBS)
+tdsdump: genconv.c tdsextlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o tdsdump -DWEBDUMP -DREC_PROT1=tds_app_recognise genconv.c tdsextlib.o e2net.o $(CLIBS)
+t3drive: t3drive.c e2net.o t3extlib.o
+	$(CC) $(CFLAGS) -o t3drive t3drive.c e2net.o t3extlib.o ../e2common/comlib.a $(CLIBS)
+worldrun: worldrun.c
+	$(CC) $(CFLAGS) -o worldrun worldrun.c ../e2common/comlib.a $(CLIBS)
+minitest: minitest.c
+#	$(CC) $(CFLAGS) -o minitest minitest.c ../e2common/w32stdio.o  ../e2common/malloc.o $(CLIBS)
+	$(CC) $(CFLAGS) -o minitest minitest.c $(CLIBS)
+ntrelay: ntrelay.c
+	$(CC) $(CFLAGS) -o ntrelay ntrelay.c $(CLIBS)
+vistarelay: vistarelay.c
+	$(CC) $(CFLAGS) -o vistarelay vistarelay.c $(CLIBS)
+ipdrive: ipdrive.o ipdinrec.o ../e2common/comlib.a
+	$(CC) $(CFLAGS) -o ipdrive ipdrive.o ipdinrec.o ../e2common/comlib.a $(CLIBS)
+
+ipdanal: ipdanal.o ipdinrec.o 
+	$(CC) $(CFLAGS) -o ipdanal ipdanal.o ipdinrec.o \
+	  $(CLIBS)
+
+ipdrive.o: ipdrive.c ipdrive.h 
+	$(CC) $(CFLAGS) -c ipdrive.c
+
+ipdinrec.o: ipdinrec.c ipdrive.h 
+	$(CC) $(CFLAGS) -c ipdinrec.c
+
+e2teld: e2teld.o
+	$(LD) $(LDFLAGS) -s -o e2teld e2teld.o $(CLIBS)
+e2nettst: e2nettst.o e2netres.o
+	$(LD) $(LDFLAGS) -o e2nettst e2nettst.o e2netres.o $(CLIBS) -lcomctl32 -loleaut32 -lole32 -luuid
+e2nettst.oj: e2nettst.c
+	$(CC) $(CFLAGS) -c e2nettst.c
+e2netres.o: e2nettst.res
+	windres -i e2nettst.res -o e2netres.o
+e2nettst.res: e2nettst.rc
+	$(RC) e2nettst.rc

@@ -1,0 +1,31 @@
+#
+# Mip.aix - Traffic Generator components for SUN SOLARIS 2.3
+#
+# Copyright (c) E3 Systems 1995. All Rights Reserved.
+# @(#) $Name$ $Id$
+#
+# Executable is ipdrive
+CFLAGS=-gx -DAIX -DNOSTDIO -DTIMEOUT_HANDLER -I. -I.. -I../../e2common -DPATH_AT
+LIBS=../pathatlib.a ../../e2common/comlib.a -lcur -lm -lc -lbsd
+#
+# System V.4
+#
+RANLIB = ar ts
+VCC = cc
+CC = cc
+XPGCC = cc
+#
+all: ipdrive
+	@echo 'E2 Traffic Generator make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+ipdrive: ipdrive.o ipdinrec.o ../pathatlib.a ../../e2common/comlib.a
+	$(CC) $(CFLAGS) -o ipdrive ipdrive.o ipdinrec.o $(LIBS)
+
+ipdrive.o: ipdrive.c ipdrive.h 
+	$(CC) $(CFLAGS) -c ipdrive.c
+
+ipdinrec.o: ipdinrec.c ipdrive.h 
+	$(CC) $(CFLAGS) -c ipdinrec.c
+

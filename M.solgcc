@@ -1,0 +1,34 @@
+# Makefile for snoopfix
+CFLAGS = -g -fwritable-strings -DNOBPF_H -DPATH_AT -DSCO -DV4 -DSOLAR -I../e2common -I. -I../perfdb -I$(ORACLE_HOME)/rdbms/demo -DSOL8 -DPOSIX -DPATH_AT
+#CFLAGS = -xO4 -DE2 -DPATH_AT -DDIY -DSCO -DV4 -DSOLAR -I. -I$(ORACLE_HOME)/rdbms/demo
+#CLIBS =  -lsocket -lnsl -lm -lc /usr/ucblib/libucb.a
+CLIBS =  ../e2common/comlib.a -lsocket -lnsl -lm -lc
+LIBS=$(CLIBS)
+# @(#) $Name$ $Id$
+# Copyright (c) E2 Systems 1995
+#
+AR = ar rv
+RANLIB = ar ts
+CC = gcc
+all: snoopfix genconv webdrive webdump minitest
+	@echo 'E2 Traffic Generator make finished'
+genconv: genconv.c e2net.o e2net.h
+	$(CC) $(CFLAGS) -o genconv -DSELF_CONTAINED genconv.c e2net.o $(CLIBS)
+resum: resum.c e2net.o novell.o e2net.h
+	$(CC) $(CFLAGS) -o resum resum.c e2net.o novell.o $(CLIBS)
+sqlmul: genconv.c sqlextlib.c novell.h e2net.h e2net.o sqlextlib.o
+	$(CC) $(CFLAGS) -o sqlmul -DREC_PROT1=ora_app_recognise genconv.c sqlextlib.o e2net.o ../perfdb/perf.a $(CLIBS) -ldl
+snoopfix: snoopfix.c e2net.o novell.o
+	$(CC) $(CFLAGS) -o snoopfix snoopfix.c novell.o e2net.o $(CLIBS)
+novell.o: novell.c novell.h
+	$(CC) $(CFLAGS) -c novell.c
+e2net.o: e2net.c e2net.h
+	$(CC) $(CFLAGS) -c e2net.c
+sqlextlib.o: sqlextlib.c novell.h
+	$(CC) $(CFLAGS) -DVERBOSE -c sqlextlib.c
+webdump: genconv.c webextlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -DWEBDUMP -o webdump -DREC_PROT1=web_app_recognise genconv.c webextlib.o e2net.o $(CLIBS) -ldl
+webdrive: webdrive.o webextlib.o
+	$(CC) $(CFLAGS) -o webdrive webdrive.o webextlib.o  $(CLIBS)
+minitest: minitest.c e2net.o novell.o
+	$(CC) $(CFLAGS) -DUNIX -o minitest minitest.c  $(CLIBS)

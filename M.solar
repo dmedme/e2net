@@ -1,0 +1,33 @@
+# Makefile for snoopfix
+CFLAGS = -g -DE2 -DNOBPF_H -DPATH_AT -DDIY -DSCO -DV4 -DSOLAR -I../../e2common -I. -I../../perfnew -I$(ORACLE_HOME)/rdbms/demo -DPATH_AT
+#CFLAGS = -xO4 -DE2 -DPATH_AT -DDIY -DSCO -DV4 -DSOLAR -I. -I$(ORACLE_HOME)/rdbms/demo
+#CLIBS =  -lsocket -lnsl -lm -lc /usr/ucblib/libucb.a
+CLIBS =  ../../e2common/comlib.a -lsocket -lnsl -lm -lc
+LIBS=$(CLIBS)
+# @(#) $Name$ $Id$
+# Copyright (c) E2 Systems 1995
+#
+AR = ar rv
+RANLIB = ar ts
+all: snoopfix bpcs genconv aixdump2snp resum sqlmul
+	@echo All done
+genconv: genconv.c e2net.o e2net.h
+	$(CC) $(CFLAGS) -o genconv -DSELF_CONTAINED genconv.c e2net.o $(CLIBS)
+resum: resum.c e2net.o novell.o e2net.h
+	$(CC) $(CFLAGS) -o resum resum.c e2net.o novell.o $(CLIBS)
+aixdump2snp: aixdump2snp.c
+	$(CC) $(CFLAGS) -o aixdump2snp aixdump2snp.c $(CLIBS)
+sqlmul: genconv.c sqlextlib.c novell.h e2net.h e2net.o sqlextlib.o
+	$(CC) $(CFLAGS) -o sqlmul genconv.c sqlextlib.o e2net.o ../../perfnew/perf.a $(CLIBS)
+snoopfix: snoopfix.c e2net.o novell.o
+	$(CC) $(CFLAGS) -o snoopfix snoopfix.c novell.o e2net.o $(CLIBS)
+bpcs: bpcs.o novell.o e2net.o
+	$(CC) $(CFLAGS) -o bpcs bpcs.o novell.o e2net.o $(CLIBS)
+bpcs.o: bpcs.c novell.h e2net.h
+	$(CC) $(CFLAGS) -c bpcs.c
+novell.o: novell.c novell.h
+	$(CC) $(CFLAGS) -c novell.c
+e2net.o: e2net.c e2net.h
+	$(CC) $(CFLAGS) -c e2net.c
+sqlextlib.o: sqlextlib.c novell.h
+	$(CC) $(CFLAGS) -c sqlextlib.c

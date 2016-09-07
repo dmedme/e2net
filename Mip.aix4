@@ -1,0 +1,73 @@
+# Mip.aix4 - Makefile for AIX 4 or higher
+# @(#) $Name$ $Id$
+# Copyright (c) E2 Systems 1997
+##########################################################################
+# The compilation stuff
+##########################################################################
+#
+CFLAGS=-g -DNOBPF_H -DNOETHER_H -DPOSIX -DAIX -I. -I.. -I../e2common -DAIX4 -qlanglvl=classic 
+LIBS=../e2common/comlib.a -lisode -lm -lc -lbsd
+#
+# AIX V.4
+#
+RANLIB = ar ts
+VCC = cc
+CC = cc
+XPGCC = cc
+#
+INCS=-I../e2common
+LDFLAGS=$(LIBS)
+##########################################################################
+# The executables that are built
+##########################################################################
+# Makefile for snoopfix
+all: genconv aixdump2snp sqlmul sqldbg snoopfix webdrive webdump ipdrive trafmul minitest worldrun
+	@echo All done
+genconv: genconv.c novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o genconv genconv.c e2net.o $(LIBS)
+snoopfix: snoopfix.c novell.o e2net.o novell.h
+	$(CC) $(CFLAGS) -o snoopfix snoopfix.c novell.c e2net.o $(LIBS)
+novell.o: novell.c novell.h
+	$(CC) $(CFLAGS) -c novell.c
+e2net.o: e2net.c e2net.h
+	$(CC) $(CFLAGS) -c e2net.c
+aixdump2snp: aixdump2snp.c
+	$(CC) $(CFLAGS) -o aixdump2snp aixdump2snp.c $(LIBS)
+trafmul: genconv.c novell.h e2net.h e2net.o trafextlib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=traf_app_recognise -o trafmul genconv.c trafextlib.o e2net.o $(LIBS)
+sqlmul: genconv.c novell.h e2net.h e2net.o sqlextlib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=ora_app_recognise -o sqlmul genconv.c sqlextlib.o e2net.o ../perfdb/e2srclib.o ../perfdb/cspars.o ../perfdb/csexe.o $(LIBS)
+surfmul: genconv.c novell.h e2net.h e2net.o surflib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=surfacs_app_recognise -o surfmul genconv.c surflib.o e2net.o $(LIBS)
+pathmul: genconv.c novell.h e2net.h e2net.o pathextlib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=telnet_app_recognise -o pathmul genconv.c pathextlib.o e2net.o $(LIBS)
+sqldbg: genconv.c novell.h e2net.h e2net.o sqlextlib.c
+	$(CC) $(CFLAGS) -DREC_PROT1=ora_app_recognise -o sqldbg genconv.c -DDEBUG -I$(ORACLE_HOME)/rdbms/demo -I../perfdb sqlextlib.c e2net.o ../perfdb/e2srclib.o  ../perfdb/cspars.o  ../perfdb/csexe.o $(LIBS)
+sqlextlib.o: sqlextlib.c e2net.h
+	$(CC) $(CFLAGS) -I$(ORACLE_HOME)/rdbms/demo -I../perfdb -c sqlextlib.c
+pathextlib.o: pathextlib.c e2net.h
+	$(CC) $(CFLAGS) -c pathextlib.c
+ipdanal: ipdanal.o ipdinrec.o
+	$(CC) $(CFLAGS) -o ipdanal ipdanal.o ipdinrec.o $(LIBS)
+ipdanal.o: ipdanal.c ipdrive.h
+	$(CC) $(CFLAGS) -c ipdanal.c
+webdrive.o: webdrive.c webdrive.h
+	$(CC) -DPATH_AT $(CFLAGS) -c webdrive.c
+ipdrive.o: ipdrive.c ipdrive.h
+	$(CC) -DPATH_AT $(CFLAGS) -c ipdrive.c
+ipdinrec.o: ipdinrec.c ipdrive.h
+	$(CC) -DPATH_AT $(CFLAGS) -c ipdinrec.c
+worldrun: worldrun.o 
+	$(CC) $(CFLAGS) -o worldrun worldrun.o $(LIBS)
+worldrun.o: worldrun.c
+	$(CC) $(CFLAGS) -c worldrun.c
+minitest: minitest.o 
+	$(CC) $(CFLAGS) -o minitest minitest.o $(LIBS)
+minitest.o: minitest.c
+	$(CC) $(CFLAGS) -DUNIX -c minitest.c
+ipdrive: ipdrive.o ipdinrec.o
+	$(CC) $(CFLAGS) -o ipdrive ipdrive.o ipdinrec.o $(LIBS)
+webdrive: webdrive.o
+	$(CC) $(CFLAGS) -o webdrive webdrive.o $(LIBS)
+webdump: genconv.c novell.h e2net.h e2net.o webextlib.o
+	$(CC) $(CFLAGS) -DREC_PROT1=web_app_recognise -o webdump genconv.c webextlib.o e2net.o $(LIBS)

@@ -1,0 +1,181 @@
+# makefile
+#	SCCS ID: %W% %G%
+##########################################################################
+# The compilation stuff
+##########################################################################
+#
+# Microsoft NT.4
+#
+INCS=-I. -I../sqldrive -I../e2common -I../perfdb -Ic:/oracle/instantclient_10_2/sdk/include
+#CFLAGS=-DWE_KNOW -DPOSIX -O $(INCS) -DNOBPF_H -DNOETHER_H -DNOTCP_H -DNOIP_H -DNOIP_ICMP_H -DAT -DNT4 -DMINGW32 -DLCC -DPATH_AT 
+CFLAGS=-DPOSIX -O $(INCS) -DNOBPF_H -DNOETHER_H -DNOTCP_H -DNOIP_H -DNOIP_ICMP_H -DAT -DNT4 -DMINGW32 -DLCC -DPATH_AT
+#CFLAGS=-DPOSIX -g2 $(INCS) -DNOBPF_H -DNOETHER_H -DNOTCP_H -DNOIP_H -DNOIP_ICMP_H -DAT -DNT4 -DMINGW32 -DLCC -DPATH_AT
+#CFLAGS=-DWE_KNOW -DPOSIX -g2 $(INCS) -DNOBPF_H -DNOETHER_H -DNOTCP_H -DNOIP_H -DNOIP_ICMP_H -DAT -DNT4 -DMINGW32 -DLCC -DPATH_AT 
+CLIBS=@lcclib.dat
+#LDFLAGS=-subsystem console
+LDFLAGS=-s -subsystem console
+AR = c:/lcc/bin/lcclib
+CC = c:/lcc/bin/lcc
+RC = c:/lcc/bin/lrc
+LD = c:/lcc/bin/lcclnk
+YACC=byacc
+LEX=flex -l
+.SUFFIXES: .obj .exe .c .lib .l .y
+.c.obj:
+	$(CC) -c $(CFLAGS) $<
+.obj.exe:
+	$(LD) $(LDFLAGS) -o $@ $< @lcclib.dat
+
+##########################################################################
+# The executables that are built
+##########################################################################
+# Makefile for snoopfix
+all: t3drive.exe genconv.exe sqlmul.exe sqldbg.exe snoopfix.exe ipdrive.exe win95tst.exe e2teld.exe webdump.exe webdrive.exe pathmul.exe trafmul.exe minitest.exe psmul.exe t3dump.exe
+	@echo All done
+genconv.exe: genconv.obj e2net.obj e2net.h
+	$(LD) $(LDFLAGS) -o genconv.exe genconv.obj e2net.obj $(CLIBS)
+sqlmul.exe: sqlmul.obj e2net.obj sqlextlib.obj
+	$(LD) $(LDFLAGS) -o sqlmul.exe sqlmul.obj sqlextlib.obj e2net.obj c:\\e2soft\\e2common\\malloc.obj c:\\e2soft\\perfdb\\perf.lib $(CLIBS)
+trafmul.exe: trafmul.obj e2net.obj trafextlib.obj
+	$(LD) $(LDFLAGS) -o trafmul.exe trafmul.obj trafextlib.obj e2net.obj c:\\e2soft\\perfdb\\perf.lib $(CLIBS)
+sqldbg.exe: sqldbg.obj e2net.obj sqlextdbg.obj
+	$(LD) $(LDFLAGS) -o sqldbg.exe sqldbg.obj sqlextdbg.obj e2net.obj c:\\e2soft\\perfdb\\perf.lib $(CLIBS)
+sybmul.exe: sybmul.obj e2net.obj sybextlib.obj
+	$(LD) $(LDFLAGS) -o sybmul.exe sybmul.obj sybextlib.obj e2net.obj c:\\e2soft\\perfdb\\badsyb.obj c:\\e2soft\\perfdb\\perf.lib $(CLIBS)
+smbmul.exe: smbmul.obj e2net.obj smbextlib.obj sybextlib.obj print_smb.obj \
+            smbutil.obj
+	$(LD) $(LDFLAGS) -o smbmul.exe smbmul.obj smbextlib.obj sybextlib.obj print_smb.obj smbutil.obj e2net.obj c:\\e2soft\\perfdb\\perf.lib $(CLIBS)
+obdump.exe: obdump.obj e2net.obj obdextlib.obj
+	$(LD) $(LDFLAGS) -o obdump.exe obdump.obj obdextlib.obj e2net.obj $(CLIBS)
+t3dump.exe: t3dump.obj e2net.obj t3extlib.obj
+	$(LD) $(LDFLAGS) -o t3dump.exe t3dump.obj t3extlib.obj e2net.obj $(CLIBS)
+tdsdump.exe: tdsdump.obj e2net.obj tdsextlib.obj
+	$(LD) $(LDFLAGS) -o tdsdump.exe tdsdump.obj tdsextlib.obj e2net.obj $(CLIBS)
+webdump.exe: webdump.obj e2net.obj webextlib.obj
+	$(LD) $(LDFLAGS) -o webdump.exe webdump.obj webextlib.obj e2net.obj $(CLIBS)
+mwebdump.exe: webdump.obj e2net.obj webextlib.obj malloc.obj
+	$(LD) $(LDFLAGS) -o mwebdump.exe webdump.obj webextlib.obj e2net.obj malloc.obj $(CLIBS)
+nwebdump.exe: webdump.obj e2net.obj webextlib.obj nmalloc.obj
+	$(LD) $(LDFLAGS) -o nwebdump.exe webdump.obj webextlib.obj e2net.obj nmalloc.obj $(CLIBS)
+genconv.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -c genconv.c
+sqlmul.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DREC_PROT1=ora_app_recognise -c genconv.c
+	mv genconv.obj sqlmul.obj
+trafmul.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DREC_PROT1=traf_app_recognise -c genconv.c
+	mv genconv.obj trafmul.obj
+sqldbg.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DVERBOSE -DREC_PROT1=ora_app_recognise -c genconv.c
+	mv genconv.obj sqldbg.obj
+sybmul.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DREC_PROT1=syb_app_recognise -c genconv.c
+	mv genconv.obj sybmul.obj
+smbmul.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DREC_PROT1=smb_app_recognise -c genconv.c
+	mv genconv.obj smbmul.obj
+t3dump.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DWEBDUMP -DREC_PROT1=web_app_recognise -c genconv.c
+	mv genconv.obj t3dump.obj
+tdsdump.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DWEBDUMP -DREC_PROT1=tds_app_recognise -c genconv.c
+	mv genconv.obj tdsdump.obj
+webdump.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DWEBDUMP -DREC_PROT1=web_app_recognise -c genconv.c
+	mv genconv.obj webdump.obj
+obdump.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DWEBDUMP -DREC_PROT1=obd_app_recognise -c genconv.c
+	mv genconv.obj obdump.obj
+snoopfix.exe: snoopfix.obj e2net.obj novell.obj
+	$(LD) $(LDFLAGS) -o snoopfix.exe snoopfix.obj novell.obj e2net.obj $(CLIBS)
+osfdump2snp.exe: osfdump2snp.obj
+	$(LD) $(LDFLAGS) -o osfdump2snp.exe osfdump2snp.obj $(CLIBS)
+osfdump2snp.obj: aixdump2snp.c
+	$(CC) $(CFLAGS) -DOSF -c aixdump2snp.c
+	mv aixdump2snp.obj osfdump2snp.obj
+aixdump2snp.exe: aixdump2snp.obj
+	$(LD) $(LDFLAGS) -o aixdump2snp.exe aixdump2snp.obj $(CLIBS)
+aixdump2snp.obj: aixdump2snp.c
+	$(CC) $(CFLAGS) -DAIX -c aixdump2snp.c
+snoopfix.obj: snoopfix.c
+	$(CC) $(CFLAGS) -c snoopfix.c
+novell.obj: novell.c novell.h
+	$(CC) $(CFLAGS) -c novell.c
+e2net.obj: e2net.c e2net.h
+	$(CC) $(CFLAGS) -c e2net.c
+t3extlib.obj: t3extlib.c e2net.h
+	$(CC) $(CFLAGS) -c t3extlib.c
+webextlib.obj: webextlib.c e2net.h
+	$(CC) $(CFLAGS) -c webextlib.c
+sybextlib.obj: sybextlib.c e2net.h
+	$(CC) $(CFLAGS) -c sybextlib.c
+sqlextlib.obj: sqlextlib.c e2net.h
+	$(CC) $(CFLAGS) -c sqlextlib.c
+sqlextdbg.obj: sqlextlib.c e2net.h
+	$(CC) $(CFLAGS) -DDEBUG -DVERBOSE -c sqlextlib.c
+	mv sqlextlib.obj sqlextdbg.obj
+win95tst.exe: win95tst.obj
+	$(LD) $(LDFLAGS) -o win95tst.exe win95tst.obj ws2_32.lib
+minitest.exe: minitest.obj
+	$(LD) $(LDFLAGS) -o minitest.exe minitest.obj ws2_32.lib
+minitest.obj: minitest.c
+	$(CC) $(CFLAGS) -c minitest.c
+win95tst.obj: minitest.c
+	$(CC) $(CFLAGS) -DWIN95 -c minitest.c
+	mv minitest.obj win95tst.obj
+ipdanal.exe: ipdanal.obj ipdinrec.obj
+	$(LD) $(LDFLAGS) -o ipdanal.exe ipdanal.obj ipdinrec.obj $(CLIBS)
+nmalloc.obj: nmalloc.c
+	$(CC) $(CFLAGS) -c nmalloc.c
+malloc.obj: malloc.c
+	$(CC) $(CFLAGS) -c malloc.c
+ipdanal.obj: ipdanal.c ipdrive.h
+	$(CC) $(CFLAGS) -c ipdanal.c
+t3drive.obj: t3drive.c e2net.h webdrive.h
+	$(CC) $(CFLAGS) -c t3drive.c
+webdrive.obj: webdrive.c e2net.h webdrive.h
+	$(CC) $(CFLAGS) -c webdrive.c
+ipdrive.obj: ipdrive.c ipdrive.h
+	$(CC) $(CFLAGS) -c ipdrive.c
+e2teld.obj: e2teld.c
+	$(CC) $(CFLAGS) -c e2teld.c
+ipdinrec.obj: ipdinrec.c ipdrive.h
+	$(CC) $(CFLAGS) -c ipdinrec.c
+ipdrive.exe: ipdrive.obj ipdinrec.obj
+	$(LD) $(LDFLAGS) -s -o ipdrive.exe ipdrive.obj ipdinrec.obj $(CLIBS)
+t3drive.exe: t3drive.obj t3extlib.obj e2net.obj
+	$(LD) $(LDFLAGS) -o t3drive.exe t3drive.obj t3extlib.obj e2net.obj $(CLIBS)
+webdrive.exe: webdrive.obj webextlib.obj
+	$(LD) $(LDFLAGS) -o webdrive.exe webdrive.obj webextlib.obj $(CLIBS)
+e2teld.exe: e2teld.obj
+	$(LD) $(LDFLAGS) -s -o e2teld.exe e2teld.obj $(CLIBS)
+e2nettst.exe: e2nettst.obj e2nettst.res
+	$(LD) -s -subsystem windows -o e2nettst.exe e2nettst.obj e2nettst.res shell32.lib oleaut32.lib ole32.lib uuid.lib $(CLIBS)
+e2nettst.obj: e2nettst.c
+	$(CC) $(CFLAGS) -c e2nettst.c
+e2nettst.res: e2nettst.rc
+	$(RC) e2nettst.rc
+dmmul.exe: dmmul.obj frig.obj e2net.obj
+	$(LD) $(LDFLAGS) -o dmmul.exe dmmul.obj frig.obj e2net.obj $(CLIBS)
+dmmul.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DREC_PROT1=dm_app_recognise -c genconv.c
+	mv genconv.obj dmmul.obj
+frig.obj: frig.c novell.h e2net.h
+	$(CC) $(CFLAGS) -c frig.c
+pathmul.exe: pathmul.obj e2net.obj pathextlib.obj
+	$(LD) $(LDFLAGS) -o pathmul.exe pathmul.obj pathextlib.obj e2net.obj $(CLIBS)
+pathmul.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DREC_PROT1=telnet_app_recognise -c genconv.c
+	mv genconv.obj pathmul.obj
+psmul.exe: psmul.obj e2net.obj pslib.obj
+	$(LD) $(LDFLAGS) -o psmul.exe psmul.obj pslib.obj e2net.obj $(CLIBS)
+psmul.obj: genconv.c novell.h e2net.h
+	$(CC) $(CFLAGS) -DREC_PROT1=ps_app_recognise -c genconv.c
+	mv genconv.obj psmul.obj
+pslib.obj: pslib.c e2net.h
+	$(CC) $(CFLAGS) -c pslib.c
+pathextlib.obj: pathextlib.c e2net.h
+	$(CC) $(CFLAGS) -c pathextlib.c
+print_smb.obj:print_smb.c smb.h
+smbutil.obj:smbutil.c smb.h
+smbextlib.obj:smbextlib.c

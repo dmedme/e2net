@@ -1,0 +1,39 @@
+#
+# Mip.nt4 - Traffic Generator components for Microsoft NT 4.
+#
+# Copyright (c) E3 Systems 1995. All Rights Reserved.
+# @(#) $Name$ $Id$
+#
+##########################################################################
+# The compilation stuff
+##########################################################################
+#
+# Microsoft NT.4
+#
+LIBDIR=/cygnus/cygwin-b20/H-i586-cygwin32/lib
+INCS=-I. -I../sqldrive -I../e2common -I../perfdb -I/oracle/v80/oci80 -I/CYGNUS/cygwin-b20/H-i586-cygwin32/i586-cygwin32/include
+LIBS=../e2common/comlib.a -lwsock32 -lkernel32 -luser32
+CFLAGS=-DPATH_AT -DPOSIX -g $(INCS) -DNOBPF_H -DNOETHER_H -DNOTCP_H -DNOIP_H -DNOIP_ICMP_H -DAT -DNT4 -L$(LIBDIR) -L/cygnus/cygwin-b20/H-i586-cygwin32/lib/gcc-lib/i586-cygwin32/egcs-2.91.57  -fwritable-strings
+
+LDFLAGS=$(LIBS)
+CLIBS=$(LIBS)
+RANLIB = ar ts
+VCC = gcc
+CC = gcc
+XPGCC = gcc
+YACC=byacc
+LEX=flex -l
+##########################################################################
+all: ipdrive
+	@echo 'E2 Traffic Generator make finished'
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+ipdrive: ipdrive.o ipdinrec.o ../e2common/comlib.a
+	$(CC) $(CFLAGS) -o ipdrive ipdrive.o ipdinrec.o $(LIBS)
+
+ipdrive.o: ipdrive.c ipdrive.h 
+	$(CC) $(CFLAGS) -c ipdrive.c
+
+ipdinrec.o: ipdinrec.c ipdrive.h 
+	$(CC) $(CFLAGS) -c ipdinrec.c

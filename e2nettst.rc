@@ -1,0 +1,86 @@
+#include <windows.h>
+#include "winver.h"
+#include "e2nettst.h"
+/*****************************************************************************
+ * Icon
+ */
+IDI_E2NETTST               ICON    DISCARDABLE     "e2nettst.ico"
+
+/*****************************************************************************
+ * Menus
+ */
+E2NETTSTMENU MENU DISCARDABLE 
+BEGIN
+    MENUITEM "&Exit",  ID_EXIT
+    MENUITEM "&About", IDM_ABOUT
+END
+
+
+E2NETTSTBOX DIALOG 14, 116, 170, 110
+STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
+    WS_VISIBLE | WS_CAPTION | WS_SYSMENU |WS_BORDER
+CAPTION "E2 Network Benchmark"
+FONT 8, "MS Sans Serif"
+CLASS "E2NETTST"
+BEGIN
+    CTEXT           "Enter your office details, then push the button to start", 
+                    IDC_STATIC_1, 9, 5, 152, 24
+    EDITTEXT        IDC_REMARKS,25,28,115,35,
+                            WS_TABSTOP|ES_MULTILINE|ES_AUTOVSCROLL|WS_VSCROLL
+    DEFPUSHBUTTON   "OK", IDOK, 60, 70, 35, 14
+END
+
+/*****************************************************************************
+ * Accelerator
+ */
+IDACCEL ACCELERATORS DISCARDABLE 
+BEGIN
+    VK_RETURN,      IDOK,                   VIRTKEY,NOINVERT
+    "Q",    ID_EXIT,VIRTKEY,CONTROL
+END
+
+/*****************************************************************************
+ * About box
+ */
+IDD_ABOUT DIALOG 6, 18, 220, 70
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "About E2nettst"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "e2nettst.exe Version 1.2", ID_EXIT, 11, 12, 200, 12
+    LTEXT           "Copyright (c) E2 Systems Limited 1998", 
+                    IDD_DIALOG1, 11, 25, 200, 12
+    LTEXT           "Provided by E2 Systems, the Independent Benchmark Specialists", 
+                    IDD_DIALOG1, 11, 38, 200, 12
+    LTEXT           "For more information see www.e2systems.co.uk", 
+                    IDD_DIALOG1, 11, 51, 200, 12
+END
+
+/*****************************************************************************
+ * File version information
+ */
+1 VERSIONINFO
+FILEVERSION 0,0,0,1
+PRODUCTVERSION 0,0,0,1
+FILEFLAGSMASK 0x3f
+FILEFLAGS 0x3f
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+FILESUBTYPE 0
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "Comments","32-bit Version"
+            VALUE "CompanyName","E2 Systems Limited"
+            VALUE "FileDescription","E2 Systems Network Benchmark Startup"
+            VALUE "FileVersion","1.2"
+            VALUE "InternalName","e2nettst"
+            VALUE "LegalCopyright","Copyright (c) E2 Systems Limited, 1998"
+            VALUE "OriginalFilename","e2nettst.exe"
+            VALUE "ProductName","E2 Systems Network Benchmark Startup"
+            VALUE "ProductVersion","1.0"
+        END
+    END
+END

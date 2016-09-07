@@ -1,0 +1,56 @@
+# makefile
+#	SCCS ID: %W% %G%
+##########################################################################
+# The compilation stuff
+##########################################################################
+# HP-UX 10
+#
+INCS=-I. -I../sqldrive -I../e2common -I../perfdb -I$(ORACLE_HOME)/rdbms/demo
+LIBS=../perfdb/perf.a ../e2common/comlib.a -l:libcma.sl -lcl -lm -l:libcl.a -lC  -lc -lV3 -lBSD
+CFLAGS=-DPATH_AT -DPOSIX -DNOETHER_H -DNOBPF_H $(INCS) -DHP7 -DV4 
+LDFLAGS=$(LIBS)
+CLIBS=$(LIBS)
+RANLIB = ar ts
+VCC = cc
+CC = cc
+XPGCC = cc
+YACC=byacc
+LEX=flex -l
+##########################################################################
+# The executables that are built
+##########################################################################
+# Makefile for snoopfix
+all: ccsmul ccsdbg genconv aixdump2snp sqlmul sqldbg snoopfix eqsnf2snp codamul coddrive resum
+	@echo All done
+genconv: genconv.c e2net.o e2net.h
+	$(CC) $(CFLAGS) -o genconv -DSELF_CONTAINED genconv.c e2net.o $(CLIBS)
+resum: resum.c e2net.o novell.o e2net.h
+	$(CC) $(CFLAGS) -o resum resum.c e2net.o novell.o $(CLIBS)
+aixdump2snp: aixdump2snp.c
+	$(CC) $(CFLAGS) -o aixdump2snp aixdump2snp.c $(CLIBS)
+eqsnf2snp: eqsnf2snp.c
+	$(CC) $(CFLAGS) -o eqsnf2snp eqsnf2snp.c $(CLIBS)
+coddrive: coddrive.c coddrive.h e2net.h
+	$(CC) $(CFLAGS) -o coddrive coddrive.c ../sqldrive/timestamp.c $(CLIBS)
+codamul: genconv.c novell.h e2net.h e2net.o codextlib.o
+	$(CC) $(CFLAGS) -o codamul genconv.c codextlib.o e2net.o $(CLIBS)
+ccsmul: genconv.c novell.h e2net.h e2net.o ccsextlib.o
+	$(CC) $(CFLAGS) -o ccsmul genconv.c ccsextlib.o e2net.o $(CLIBS)
+ccsdbg: genconv.c novell.h e2net.h e2net.o ccsextlib.c
+	$(CC) $(CFLAGS) -DDEBUG -o ccsdbg genconv.c ccsextlib.c e2net.o $(CLIBS)
+sqlmul: genconv.c novell.h e2net.h e2net.o sqlextlib.o
+	$(CC) $(CFLAGS) -o sqlmul genconv.c sqlextlib.o e2net.o $(CLIBS)
+sqldbg: genconv.c novell.h e2net.h e2net.o sqlextlib.c
+	$(CC) $(CFLAGS) -o sqldbg genconv.c -DDEBUG sqlextlib.c e2net.o $(CLIBS)
+snoopfix: snoopfix.c e2net.o novell.o
+	$(CC) $(CFLAGS) -o snoopfix snoopfix.c novell.o e2net.o $(CLIBS)
+bpcs: bpcs.o novell.o e2net.o
+	$(CC) $(CFLAGS) -o bpcs bpcs.o novell.o e2net.o $(CLIBS)
+bpcs.o: bpcs.c novell.h e2net.h
+	$(CC) $(CFLAGS) -c bpcs.c
+novell.o: novell.c novell.h
+	$(CC) $(CFLAGS) -c novell.c
+e2net.o: e2net.c e2net.h
+	$(CC) $(CFLAGS) -c e2net.c
+sqlextlib.o: sqlextlib.c novell.h
+	$(CC) $(CFLAGS) -c sqlextlib.c

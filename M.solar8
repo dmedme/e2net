@@ -1,0 +1,57 @@
+# Makefile for snoopfix
+ORACLE_HOME=/u01/app/oracle/MAST/8.0.6
+CFLAGS = -g -fwritable-strings -DNOBPF_H -DPATH_AT -DSCO -DV4 -DSOLAR -I../e2common -I. -I../perfdb -I$(ORACLE_HOME)/rdbms/demo -DSOL8 -DPOSIX -DPATH_AT
+#CFLAGS = -xO4 -DE2 -DPATH_AT -DDIY -DSCO -DV4 -DSOLAR -I. -I$(ORACLE_HOME)/rdbms/demo
+#CLIBS =  -lsocket -lnsl -lm -lc /usr/ucblib/libucb.a
+CLIBS =  ../e2common/comlib.a -lsocket -lnsl -lm -lc
+LIBS=$(CLIBS)
+# @(#) $Name$ $Id$
+# Copyright (c) E2 Systems 1995
+#
+AR = ar rv
+RANLIB = ar ts
+CC = gcc
+all: snoopfix genconv sqlmul ipdrive trafanal ipdanal trafmul webdump webdrive minitest worldrun
+	@echo 'E2 Traffic Generator make finished'
+genconv: genconv.c e2net.o e2net.h
+	$(CC) $(CFLAGS) -o genconv -DSELF_CONTAINED genconv.c e2net.o $(CLIBS)
+resum: resum.c e2net.o novell.o e2net.h
+	$(CC) $(CFLAGS) -o resum resum.c e2net.o novell.o $(CLIBS)
+aixdump2snp: aixdump2snp.c
+	$(CC) $(CFLAGS) -o aixdump2snp aixdump2snp.c $(CLIBS)
+sqlmul: genconv.c sqlextlib.c novell.h e2net.h e2net.o sqlextlib.o
+	$(CC) $(CFLAGS) -o sqlmul -DREC_PROT1=ora_app_recognise genconv.c sqlextlib.o e2net.o ../perfdb/perf.a $(CLIBS)
+trafmul: genconv.c trafextlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o trafmul -DREC_PROT1=traf_app_recognise genconv.c trafextlib.o e2net.o $(CLIBS)
+webdump: genconv.c webextlib.o novell.h e2net.h e2net.o
+	$(CC) $(CFLAGS) -o webdump -DREC_PROT1=web_app_recognise genconv.c webextlib.o e2net.o $(CLIBS)
+snoopfix: snoopfix.c e2net.o novell.o
+	$(CC) $(CFLAGS) -o snoopfix snoopfix.c novell.o e2net.o $(CLIBS)
+novell.o: novell.c novell.h
+	$(CC) $(CFLAGS) -c novell.c
+e2net.o: e2net.c e2net.h
+	$(CC) $(CFLAGS) -c e2net.c
+webdrive: webdrive.c
+	$(CC) $(CFLAGS) -o webdrive webdrive.c ../e2common/comlib.a $(LIBS)
+worldrun: worldrun.c
+	$(CC) $(CFLAGS) -o worldrun worldrun.c ../e2common/comlib.a $(LIBS)
+minitest: minitest.c
+	$(CC) $(CFLAGS) -DUNIX -o minitest minitest.c $(LIBS)
+sqlextlib.o: sqlextlib.c novell.h
+	$(CC) $(CFLAGS) -c sqlextlib.c
+#*************************************************************************
+# Non-product-specific utilities
+# VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+ipdrive: ipdrive.o ipdinrec.o ../e2common/comlib.a
+	$(CC) $(CFLAGS) -o ipdrive ipdrive.o ipdinrec.o ../e2common/comlib.a $(LIBS)
+
+ipdanal: ipdanal.o ipdinrec.o 
+	$(CC) $(CFLAGS) -o ipdanal ipdanal.o ipdinrec.o \
+	  $(LIBS)
+
+ipdrive.o: ipdrive.c ipdrive.h 
+	$(CC) $(CFLAGS) -c ipdrive.c
+
+ipdinrec.o: ipdinrec.c ipdrive.h 
+	$(CC) $(CFLAGS) -c ipdinrec.c
+
